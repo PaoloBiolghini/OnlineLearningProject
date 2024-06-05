@@ -8,13 +8,13 @@ T=300
 cost = 0.1
 n_customers=100
 prices = np.linspace(0, 1, 100)
-
+r=5
 
 
 conversion_probability = lambda p,t:1- np.exp(3*p*127/T)/np.exp(3)
 conversion_probability = lambda p,t: 1-scipy.special.expit(5*p*200/T)
 #Proposta da me
-conversion_probability = lambda p,t: (1-p**(1/5))/(1+p)
+conversion_probability = lambda p,t: (1-p**(1/5+r*t/T))/(1+p)
 
 #creating the env
 env = PricingEnvironment(conversion_probability=conversion_probability, cost=cost)
