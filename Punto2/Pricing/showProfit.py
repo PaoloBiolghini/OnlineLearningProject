@@ -14,7 +14,7 @@ r=5
 conversion_probability = lambda p,t:1- np.exp(3*p*127/T)/np.exp(3)
 conversion_probability = lambda p,t: 1-scipy.special.expit(5*p*200/T)
 #Proposta da me
-conversion_probability = lambda p,t: (1-p**(1/5+r*t/T))/(1+p)
+conversion_probability = lambda p,t: (1-p**(1/5+5*t/T))/(1+p)
 
 #creating the env
 env = PricingEnvironment(conversion_probability=conversion_probability, cost=cost)
@@ -34,5 +34,6 @@ plt.plot(prices, expected_profit_curve, label='Expected Profit Curve')
 plt.plot(prices, estimated_profit_curve, label='Estimated Profit Curve')
 plt.scatter(best_price, expected_profit_curve[best_price_index], color='red', s=50)
 plt.xlabel('Item Price')
+plt.title('Expected and Estimated Profit Curves time=1')
 plt.legend()
 plt.show()
