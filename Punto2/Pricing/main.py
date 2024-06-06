@@ -26,9 +26,9 @@ class Main():
         T = 10000 # try T=100, why this behavior?
         K = 100
 
-        prices = np.linspace(10,20,K) # 100 actions!
-        cost = 10
-        conversion_probability = lambda p: 1-p/20
+        prices = np.linspace(0,1,K) # 100 actions!
+        cost = 0.1
+        conversion_probability = lambda p,t: (1-p**(1/5+5*t/T))/(1+p)
 
         n_customers = 100 # I assume the number of customers arriving is the same everyday (for now, in general this is not true)
 
@@ -36,11 +36,22 @@ class Main():
         maximum_profit = reward_function(max(prices), n_customers) # the maximum possible reward is selling at the maximum price to every possible customer
 
         # let's compute the clairvoyant
-        profit_curve = reward_function(prices, n_customers*conversion_probability(prices))
-        best_price_index = np.argmax(profit_curve)
-        best_price = prices[best_price_index]
-        expected_clairvoyant_rewards = np.repeat(profit_curve[best_price_index], T)
+        profit_curve = lambda p,t:(1-p**(1/5+5*t/T))/(1+p)*(p-cost)
 
+        sum_expcted_rewards = np.zeros(K)
+        for n in range(T):
+            sum_expcted_rewards += profit_curve(prices, n)
+
+        
+        best_price_index = np.argmax(sum_expcted_rewards)
+        print("BEST PRICE:",best_price_index)
+        best_price = prices[best_price_index]
+        print("BEST PRICE:",best_price_index, "VALUE:",best_price)
+        expected_clairvoyant_rewards=[]
+        for n in range(T):
+            expected_clairvoyant_rewards.append(profit_curve(best_price,n)*n_customers)
+        
+        
         n_trials = 100
 
         regret_per_trial = []
@@ -55,11 +66,14 @@ class Main():
             for t in range(T):
                 pi_t = ucb_agent.pull_arm() ## the agent returns the index!!
                 p_t = prices[pi_t] # I get the actual price
+                
                 d_t, r_t = env.round(p_t, n_customers)
+                
                 ucb_agent.update(r_t)
 
                 agent_rewards = np.append(agent_rewards, r_t)
-
+            
+            
             cumulative_regret = np.cumsum(expected_clairvoyant_rewards-agent_rewards)
             regret_per_trial.append(cumulative_regret)
 
