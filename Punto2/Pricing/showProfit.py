@@ -1,3 +1,4 @@
+#%%
 from AdversarialPricingEnviroment import PricingAdversarialEnvironment as PricingEnvironment
 import numpy as np
 import matplotlib.pyplot as plt
@@ -37,3 +38,4 @@ plt.xlabel('Item Price')
 plt.title('Expected and Estimated Profit Curves time=1')
 plt.legend()
 plt.show()
+# %%
