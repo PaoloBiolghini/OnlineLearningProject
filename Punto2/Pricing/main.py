@@ -4,30 +4,13 @@ import matplotlib.pyplot as plt
 
 from AdversarialPricingEnviroment import NonstationaryAdvEnvironment 
 from AdversarialPricingEnviroment import PricingAdversarialEnvironment as PricingEnvironment
-from OnlineLearningProject.Punto2.Pricing.UCB1Agent import UCB1Agent
 from agent import EXP3Agent, EXP3AgentSlidingWindow as EXP3SW
 import math
 class Main():
-    def test_invironment():
-        T = 5
-        n_users = 2
-        seed = 1
-        n_arms = 3
-        env = NonstationaryAdvEnvironment(T, n_users, seed, n_arms)
-
-        i = 0
-        while i < T:
-            # Assess price (ex: p = 0.5 fixed)
-            arm = 2
-            print(f'Day {i+1} started. Price = {0.5}.')
-            prob = env.get_prob(arm)
-            print(f'Current Purchase Probability for every user: {prob}.\n')
-            
-            i += 1
     def test_UCB1Agent():
         T = 100 # try T=100, why this behavior?
         K = 100
-
+        n_trials = 5
         prices = np.linspace(0,1,K) # 100 actions!
         cost = 0.1
         conversion_probability = lambda p,t: (1-p**(1/5+5*t/T))/(1+p)
@@ -54,7 +37,7 @@ class Main():
             expected_clairvoyant_rewards.append(profit_curve(best_price,n)*n_customers)
         
         
-        n_trials = 5
+        
 
         regret_per_trial = []
         
@@ -65,8 +48,8 @@ class Main():
             np.random.seed(seed)
             env = PricingEnvironment(conversion_probability=conversion_probability, cost=cost)
             
-            #agent = EXP3Agent(K, opt_lRate)
-            agent = EXP3SW(K,opt_lRate,20)
+            agent = EXP3Agent(K, opt_lRate)
+            #agent = EXP3SW(K,opt_lRate,17)
 
             agent_rewards = np.array([])
 
