@@ -4,7 +4,9 @@ import matplotlib.pyplot as plt
 
 from AdversarialPricingEnviroment import NonstationaryAdvEnvironment 
 from AdversarialPricingEnviroment import PricingAdversarialEnvironment as PricingEnvironment
-from UCB1Agent import UCB1Agent
+from OnlineLearningProject.Punto2.Pricing.UCB1Agent import UCB1Agent
+from agent import EXP3Agent, EXP3AgentSlidingWindow as EXP3SW
+import math
 class Main():
     def test_invironment():
         T = 5
@@ -23,7 +25,7 @@ class Main():
             
             i += 1
     def test_UCB1Agent():
-        T = 10000 # try T=100, why this behavior?
+        T = 100 # try T=100, why this behavior?
         K = 100
 
         prices = np.linspace(0,1,K) # 100 actions!
@@ -52,24 +54,29 @@ class Main():
             expected_clairvoyant_rewards.append(profit_curve(best_price,n)*n_customers)
         
         
-        n_trials = 100
+        n_trials = 5
 
         regret_per_trial = []
+        
+        opt_lRate=math.sqrt(np.log(K)/(K*T))
+        opt_window=math.sqrt(T)
 
         for seed in range(n_trials):
             np.random.seed(seed)
             env = PricingEnvironment(conversion_probability=conversion_probability, cost=cost)
-            ucb_agent = UCB1Agent(K, T, range=maximum_profit)
+            
+            #agent = EXP3Agent(K, opt_lRate)
+            agent = EXP3SW(K,opt_lRate,20)
 
             agent_rewards = np.array([])
 
             for t in range(T):
-                pi_t = ucb_agent.pull_arm() ## the agent returns the index!!
+                pi_t = agent.pull_arm() ## the agent returns the index!!
                 p_t = prices[pi_t] # I get the actual price
                 
                 d_t, r_t = env.round(p_t, n_customers)
                 
-                ucb_agent.update(r_t)
+                agent.update(1-r_t)
 
                 agent_rewards = np.append(agent_rewards, r_t)
             
@@ -83,7 +90,7 @@ class Main():
         regret_sd = regret_per_trial.std(axis=0)
 
         plt.plot(np.arange(T), average_regret, label='Average Regret')
-        plt.title('cumulative regret of UCB1')
+        plt.title('cumulative regret of EXP3 sliding window')
         plt.fill_between(np.arange(T),
                         average_regret-regret_sd/np.sqrt(n_trials),
                         average_regret+regret_sd/np.sqrt(n_trials),
@@ -95,7 +102,7 @@ class Main():
         plt.show()
 
         plt.figure()
-        plt.barh(np.arange(100), ucb_agent.N_pulls)
+        plt.barh(np.arange(100), agent.N_pulls)
         plt.axhline(best_price_index, color='red', label='Best price')
         plt.ylabel('actions')
         plt.xlabel('numer of pulls')
