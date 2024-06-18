@@ -3,6 +3,7 @@ from Auction.SecondPriceAuction import SecondPriceAuction
 from Auction.MultiplicativePacingAgent import MultiplicativePacingAgent
 import numpy as np
 import argparse
+from Auction.UCBAgent import UCBAgent
 
 #pricing
 from Pricing.GPThompson import GPThompson
@@ -52,7 +53,7 @@ def parse():
     parser.add_argument('--T', type=int, help='number of days', default=100)
     parser.add_argument('--n_users', type=int, help='number of users', default=1000)
     parser.add_argument('--n_customers', type=int, help='number of customers for pricing problem', default=100)
-    parser.add_argument('--B', type=int, help='budget for auction problem', default=150)
+    parser.add_argument('--B', type=int, help='budget for auction problem', default=15000)
     parser.add_argument('--valuation', type=float, help='valuation for auction problem', default=0.8)
     parser.add_argument('--cost', type=int, help='cost for pricing problem', default=10)
     parser.add_argument('--ctrs', nargs='+', type=float, help='conversion rates for advertisers', default=[1, 1, 1, 1])
@@ -60,6 +61,9 @@ def parse():
     parser.add_argument('--min_price', type=int, help='minimum price for pricing problem', default=10)
     parser.add_argument('--max_price', type=int, help='maximum price for pricing problem', default=20)
     parser.add_argument('--pricing_agent', type=str, help="type of agent of the stoch pricing problem", default='ucb')
+    
+    
+    parser.add_argument('--bidding_agent', type=str, help="type of agent of the stoch pricing problem", default='mult')
     #TODO: ADD DISTRIBUTIONS ARGUMENT
     # if ctrs is not given or is less than the number of advertisers, fill with ones
     args = parser.parse_args()
@@ -79,30 +83,44 @@ if __name__ == '__main__':
             # posso imparare a biddare il giorno 1 e poi fare lo stesso per ogni giorno
             
             # competitors in stochastic environment
-            other_bids = np.random.uniform(0, 1, size = (args.advertisers-1, args.n_users))
+            
             # noise in the environment
             eta = 1/np.sqrt(args.n_users)
             # mult pacing agent agent
-            # TODO: ADD UCB AGENT
-            multiplicative_agent = MultiplicativePacingAgent(
-                valuation=args.valuation,
-                budget=args.B,
-                T=args.n_users, 
-                eta=eta
-            )
+            if args.bidding_agent == 'ucb':
+                K_disc = discretize(args.T)
+                adv_agent = UCBAgent(
+                    valuation=args.valuation,
+                    budget=args.B,
+                    n_users=args.n_users,
+                    T=args.T,
+                    K=K_disc
+                    
+                )
+            else:
+                adv_agent = MultiplicativePacingAgent(
+                    valuation=args.valuation,
+                    budget=args.B,
+                    T=args.T, 
+                    n_users= args.n_users,
+                    eta=eta
+                )
             auction = SecondPriceAuction(args.ctrs)
-            print(args)
+            total_wins_period=0
             for t in range(args.T):
                 print(f'Day {t+1}')
                 day_seed= np.random.randint(0, 1000)
                 print(f'Seed: {day_seed}')
+                np.random.seed(day_seed)
+                other_bids = np.random.uniform(0, 1, size = (args.advertisers-1, args.n_users))
                 utilities, my_bids, my_payments, total_wins = loop_auction_day(
                     auction=auction, 
-                    agent=multiplicative_agent, 
+                    agent=adv_agent, 
                     other_bids=other_bids, 
                     seed=day_seed,
                     n_users=args.n_users
                 )
+                total_wins_period+=total_wins
                 print(f'Total Utility: {utilities.sum()}')
                 print(f'Mean Utility: {utilities.mean()}')
                 print(f'Mean Bid: {my_bids.mean()}')
@@ -110,9 +128,13 @@ if __name__ == '__main__':
                 print(f'Mean # of Wins: {total_wins/args.n_users}')
                 print('---'*10)
                 # l'assunzione che il budget è lo stesso per ogni giorno va verificata
-                multiplicative_agent.lmbd = 1
-                multiplicative_agent.budget = args.B
-                B= args.B
+                # multiplicative_agent.lmbd = 1
+                # multiplicative_agent.budget = args.B
+                # B= args.B
+                adv_agent.update_per_round()
+            print(f'Total # of Wins: {total_wins_period}')
+            print(f'Total Bids: {args.T*args.n_users}') 
+            
                 
         elif args.problem == 'pricing':
             K = discretize(args.T)
