@@ -61,8 +61,6 @@ def parse():
     parser.add_argument('--min_price', type=int, help='minimum price for pricing problem', default=10)
     parser.add_argument('--max_price', type=int, help='maximum price for pricing problem', default=20)
     parser.add_argument('--pricing_agent', type=str, help="type of agent of the stoch pricing problem", default='ucb')
-    
-    
     parser.add_argument('--bidding_agent', type=str, help="type of agent of the stoch pricing problem", default='mult')
     #TODO: ADD DISTRIBUTIONS ARGUMENT
     # if ctrs is not given or is less than the number of advertisers, fill with ones
@@ -78,15 +76,9 @@ if __name__ == '__main__':
     
     if args.env == 'stochastic':
         if args.problem == 'auction':
-            # assumendo un ambiente stazionario allora il budget è lo stesso ogni giorno. Se l'ambiante cambia allora il budget giornaliero cambia
-            # assumendo che il budget sia lo stesso per ogni giorno
-            # posso imparare a biddare il giorno 1 e poi fare lo stesso per ogni giorno
-            
-            # competitors in stochastic environment
             
             # noise in the environment
             eta = 1/np.sqrt(args.n_users)
-            # mult pacing agent agent
             if args.bidding_agent == 'ucb':
                 K_disc = discretize(args.T)
                 adv_agent = UCBAgent(
@@ -127,10 +119,6 @@ if __name__ == '__main__':
                 print(f'Mean Payment: {my_payments.mean()}')
                 print(f'Mean # of Wins: {total_wins/args.n_users}')
                 print('---'*10)
-                # l'assunzione che il budget è lo stesso per ogni giorno va verificata
-                # multiplicative_agent.lmbd = 1
-                # multiplicative_agent.budget = args.B
-                # B= args.B
                 adv_agent.update_per_round()
             print(f'Total # of Wins: {total_wins_period}')
             print(f'Total Bids: {args.T*args.n_users}') 
