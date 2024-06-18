@@ -1,25 +1,40 @@
-# import Agent, Auction
-from Auction.Agent import Agent
-from Auction.RandomAgent import RandomAgent
+#auction
 from Auction.SecondPriceAuction import SecondPriceAuction
+from Auction.MultiplicativePacingAgent import MultiplicativePacingAgent
 import numpy as np
+import argparse
+
+#pricing
+from Pricing.GPThompson import GPThompson
+from Pricing.GPUCBAgent import GPUCBAgent
+from Pricing.StochasticPricingEnvironment import StochasticPricingEnvironment
+import numpy as np 
+
+def discretize(T):
+    epsilon = T**(-0.33)
+    K = int(1/epsilon)
+    return K
+
+def rescale(x, min_x, max_x):
+    return min_x + (max_x-min_x)*x
 
 
-def loop_auction_day(auction, agent, other_bids, n_users=1000):
+
+def loop_auction_day(auction, agent, other_bids,seed, n_users=1000):
     utilities = np.array([])
     my_bids = np.array([])
     my_payments = np.array([])
     total_wins = 0
     m_t = other_bids.max(axis=0)
     
-    np.random.seed(18)
+    np.random.seed(seed)
     for u in range(n_users):
         # interaction
         my_bid = agent.bid()
         bids = np.append(my_bid, other_bids[:, u].ravel())
         winners, payments_per_click = auction.round(bids=bids)
         my_win = int(winners==0)
-        f_t, c_t = (my_valuation-m_t[u])*my_win, m_t[u]*my_win
+        f_t, c_t = (args.valuation-m_t[u])*my_win, m_t[u]*my_win
         agent.update(f_t, c_t)
         # logging
         utilities = np.append(utilities, f_t)
@@ -29,61 +44,125 @@ def loop_auction_day(auction, agent, other_bids, n_users=1000):
     print(f'Total # of Wins: {total_wins}')
     return utilities, my_bids, my_payments, total_wins
 
+def parse():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--env', type=str, help='type of environment: adversarial or stochastic', default='stochastic')
+    parser.add_argument('--problem', type=str, help='Play only pricing, only auction or both', default='both')
+    parser.add_argument('--advertisers', type=int, help='number of advertisers for auction problem', default=4)
+    parser.add_argument('--T', type=int, help='number of days', default=100)
+    parser.add_argument('--n_users', type=int, help='number of users', default=1000)
+    parser.add_argument('--n_customers', type=int, help='number of customers for pricing problem', default=100)
+    parser.add_argument('--B', type=int, help='budget for auction problem', default=150)
+    parser.add_argument('--valuation', type=float, help='valuation for auction problem', default=0.8)
+    parser.add_argument('--cost', type=int, help='cost for pricing problem', default=10)
+    parser.add_argument('--ctrs', nargs='+', type=float, help='conversion rates for advertisers', default=[1, 1, 1, 1])
+    parser.add_argument('--eta', type=float, help='noise in the environment', default=1/np.sqrt(1000))
+    parser.add_argument('--min_price', type=int, help='minimum price for pricing problem', default=10)
+    parser.add_argument('--max_price', type=int, help='maximum price for pricing problem', default=20)
+    parser.add_argument('--pricing_agent', type=str, help="type of agent of the stoch pricing problem", default='ucb')
+    #TODO: ADD DISTRIBUTIONS ARGUMENT
+    # if ctrs is not given or is less than the number of advertisers, fill with ones
+    args = parser.parse_args()
+    if len(args.ctrs) < args.advertisers:
+        args.ctrs += [1]*(args.advertisers-len(args.ctrs))
+    return args
 if __name__ == '__main__':
-    # TODO: set values with parameters
-    # auction parameters
-    n_advertisers = 4 
-    ctrs = np.ones(n_advertisers)
-    my_valuation = 0.8
-    B = 150
+    args = parse()
+    
+    np.random.seed(42)
+    #TODO: INITIALIZE DIFFERENT COMBIANATIONS OF ENVIRONMENTS
+    
+    if args.env == 'stochastic':
+        if args.problem == 'auction':
+            # assumendo un ambiente stazionario allora il budget è lo stesso ogni giorno. Se l'ambiante cambia allora il budget giornaliero cambia
+            # assumendo che il budget sia lo stesso per ogni giorno
+            # posso imparare a biddare il giorno 1 e poi fare lo stesso per ogni giorno
+            
+            # competitors in stochastic environment
+            other_bids = np.random.uniform(0, 1, size = (args.advertisers-1, args.n_users))
+            # noise in the environment
+            eta = 1/np.sqrt(args.n_users)
+            # mult pacing agent agent
+            # TODO: ADD UCB AGENT
+            multiplicative_agent = MultiplicativePacingAgent(
+                valuation=args.valuation,
+                budget=args.B,
+                T=args.n_users, 
+                eta=eta
+            )
+            auction = SecondPriceAuction(args.ctrs)
+            print(args)
+            for t in range(args.T):
+                print(f'Day {t+1}')
+                day_seed= np.random.randint(0, 1000)
+                print(f'Seed: {day_seed}')
+                utilities, my_bids, my_payments, total_wins = loop_auction_day(
+                    auction=auction, 
+                    agent=multiplicative_agent, 
+                    other_bids=other_bids, 
+                    seed=day_seed,
+                    n_users=args.n_users
+                )
+                print(f'Total Utility: {utilities.sum()}')
+                print(f'Mean Utility: {utilities.mean()}')
+                print(f'Mean Bid: {my_bids.mean()}')
+                print(f'Mean Payment: {my_payments.mean()}')
+                print(f'Mean # of Wins: {total_wins/args.n_users}')
+                print('---'*10)
+                # l'assunzione che il budget è lo stesso per ogni giorno va verificata
+                multiplicative_agent.lmbd = 1
+                multiplicative_agent.budget = args.B
+                B= args.B
+                
+        elif args.problem == 'pricing':
+            K = discretize(args.T)
+            prices = np.linspace(args.min_price, args.max_price, K)
+            reward_function = lambda price, n_sales: (price-args.cost)*n_sales
+            maximum_profit = reward_function(max(prices), args.n_customers)
+            # reward function
+            reward_function = lambda price, n_sales: (price-args.cost)*n_sales
+            maximum_profit = reward_function(max(prices), args.n_customers) # the maximum possible reward is selling at the maximum price to every possible customer
 
-    # environmental settings
-    n_users = 1000
+            # conversion prob
+            conversion_probability = lambda p: 1-p/20 #TODO: try to change it
+            
+            # clairvoyant
+            profit_curve = reward_function(prices, args.n_customers*conversion_probability(prices))
+            best_price_index = np.argmax(profit_curve)
+            best_price = prices[best_price_index]
+            expected_clairvoyant_rewards = np.repeat(profit_curve[best_price_index], args.T)
+            
+            # initialize agennt and environment
+            if args.pricing_agent=='ucb':
+                gp_agent = GPUCBAgent(args.T, discretization=K)
+            else:
+                gp_agent = GPThompson(args.T, discretization=K)
+            env = StochasticPricingEnvironment(conversion_probability=conversion_probability, cost=args.cost)
+            gp_agent_rewards = np.array([])
+            for t in range(args.T):
+                p_t = gp_agent.pull_arm()
+                p_t = rescale(p_t, args.min_price, args.max_price)
+                d_t, r_t = env.round(p_t, n_t=args.n_customers)
+                gp_agent.update(r_t/args.n_customers)
+                gp_agent_rewards = np.append(gp_agent_rewards, r_t)
+                print(f"day: {t}")
+                print(f"price: {p_t}")
+                print(f"revenue: {r_t}")
+                print("----------------------------")
+            print(f"prices: {prices}")
+        elif args.problem == 'both':
+            pass
+    elif args.env == 'adversarial':
+        if args.problem == 'auction':
+            pass
+        elif args.problem == 'pricing':
+            pass
+        elif args.problem == 'both':
+            pass
 
-    # competitors in stochastic environment
-    other_bids = np.random.uniform(0, 1, size = (n_advertisers-1, n_users))
-    # noise in the environment
-    eta = 1/np.sqrt(n_users)
-    
-    # auction agent and auction
-    auction_agent = Agent(
-        valuation=my_valuation,
-        budget=B,
-        T=n_users, 
-        eta=eta
-    )
-    
-    # random agent
-    random_agent=RandomAgent(
-        valuation=my_valuation,
-        budget=B,
-        T=n_users, 
-        eta=eta
-    )
-    
-    
-    auction = SecondPriceAuction(ctrs)
-    
-    # pricing parameters
-    
-    T=2 # number of days
  
-    for t in range(T):
-        print(f'Day {t+1}')
-        utilities, my_bids, my_payments, total_wins = loop_auction_day(
-            auction=auction, 
-            agent=random_agent, 
-            other_bids=other_bids, 
-            n_users=n_users
-        )
-        print(f'Total Utility: {utilities.sum()}')
-        print(f'Mean Utility: {utilities.mean()}')
-        print(f'Mean Bid: {my_bids.mean()}')
-        print(f'Mean Payment: {my_payments.mean()}')
-        print(f'Mean # of Wins: {total_wins/n_users}')
-        print('---'*10)
-        auction_agent.update_valuation()
-        B= 150
+    
+
 
 
     

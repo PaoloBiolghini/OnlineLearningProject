@@ -1,5 +1,5 @@
 import numpy as np
-from RBFGaussianProcess import RBFGaussianProcess
+from Pricing.RBFGaussianProcess import RBFGaussianProcess
 
 class GPThompson:
     def __init__(self, T, discretization=100):
