@@ -4,12 +4,12 @@ import matplotlib.pyplot as plt
 
 from AdversarialPricingEnviroment import NonstationaryAdvEnvironment 
 from AdversarialPricingEnviroment import PricingAdversarialEnvironment as PricingEnvironment
-from agent import EXP3Agent, EXP3AgentSlidingWindow as EXP3SW
+from agent import EXP3Agent,EXP3PAgent, EXP3AgentSlidingWindow as EXP3SW
 import math
 class Main():
-    def test_UCB1Agent():
-        T = 100 # try T=100, why this behavior?
-        K = 100
+    def runMain():
+        T = 1000 # try T=100, why this behavior?
+        K = 10
         n_trials = 5
         prices = np.linspace(0,1,K) # 100 actions!
         cost = 0.1
@@ -27,7 +27,7 @@ class Main():
         for n in range(T):
             sum_expcted_rewards += profit_curve(prices, n)
 
-        
+
         best_price_index = np.argmax(sum_expcted_rewards)
         print("BEST PRICE:",best_price_index)
         best_price = prices[best_price_index]
@@ -50,6 +50,12 @@ class Main():
             
             agent = EXP3Agent(K, opt_lRate)
             #agent = EXP3SW(K,opt_lRate,17)
+            
+            gamma = 0.1  # Exploration rate
+            beta = 0.01  # Perturbation factor
+            eta = 0.1    # Learning rate
+
+            agent = EXP3PAgent(K, gamma, beta, eta)
 
             agent_rewards = np.array([])
 
@@ -97,5 +103,5 @@ class Main():
 
 if __name__ == "__main__":
     #Main.test_invironment()
-    Main.test_UCB1Agent()
+    Main.runMain()
 

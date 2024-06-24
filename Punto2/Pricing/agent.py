@@ -57,3 +57,35 @@ class EXP3AgentSlidingWindow:
 
 
 #EXP3.P
+
+import numpy as np
+
+class EXP3PAgent:
+    def __init__(self, K, gamma, beta, eta):
+        self.K = K
+        self.gamma = gamma
+        self.beta = beta
+        self.eta = eta
+        self.weights = np.ones(K)
+        self.probabilities = np.ones(K) / K
+        self.losses = np.zeros(K)
+        self.t = 0
+
+    def pull_arm(self):
+        self.probabilities = (1 - self.gamma) * (self.weights / np.sum(self.weights)) + self.gamma / self.K
+        self.a_t = np.random.choice(np.arange(self.K), p=self.probabilities)
+        return self.a_t
+
+    def update(self, reward):
+        # Update the estimated loss for the chosen arm
+        estimated_loss = (1 - reward) / self.probabilities[self.a_t]
+        self.losses[self.a_t] += estimated_loss
+        
+        # Update the weights
+        self.weights[self.a_t] *= np.exp(-self.eta * estimated_loss)
+        
+        # Perturb the weights
+        noise = np.random.normal(0, 1, self.K)
+        self.weights *= np.exp(self.beta * noise)
+        
+        self.t += 1
