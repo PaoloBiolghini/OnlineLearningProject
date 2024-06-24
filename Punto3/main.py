@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 from env import PricingSlightlyNonstationaryEnvironment as PricingEnv
 from agents import UCB1Agent,SWUCBAgent
@@ -38,7 +40,7 @@ def showPlotPulls(agent,title):
 T = 10000
 K = 100
 n_customers = 100
-n_trials = 20
+n_trials = 10
 
 prices = np.linspace(0, 1, K)
 
@@ -65,6 +67,37 @@ for n in range(T):
 #----------------------------------------------
 
 
+# #-----------------Computation-------------
+# regret_per_trial = []
+#
+# ucb_agent=None
+#
+# for seed in range(n_trials):
+#     np.random.seed(seed)
+#     env = PricingEnv(conversion_probability, cost, variance)
+#     ucb_agent = UCB1Agent(K, T)
+#
+#     agent_rewards = np.array([])
+#
+#     for t in range(T):
+#         a_t = ucb_agent.pull_arm()
+#         d_t,r_t = env.round(a_t,n_customers)
+#         ucb_agent.update(r_t)
+#
+#         agent_rewards = np.append(agent_rewards, r_t)
+#
+#     cumulative_regret = np.cumsum(expected_clairvoyant_rewards-agent_rewards)
+#     regret_per_trial.append(cumulative_regret)
+#
+# #----------------Final-Plots---------------------
+#
+# showPlotRegrets(regret_per_trial,"UCB1 Regret")
+# showPlotPulls(ucb_agent,"UCB1 Agent")
+
+
+#------------SW-Computation------------------
+W=int(math.sqrt(T))
+
 #-----------------Computation-------------
 regret_per_trial = []
 
@@ -73,7 +106,7 @@ ucb_agent=None
 for seed in range(n_trials):
     np.random.seed(seed)
     env = PricingEnv(conversion_probability, cost, variance)
-    ucb_agent = UCB1Agent(K, T)
+    ucb_agent = SWUCBAgent(K, T, W)
 
     agent_rewards = np.array([])
 
@@ -89,7 +122,6 @@ for seed in range(n_trials):
 
 #----------------Final-Plots---------------------
 
-showPlotRegrets(regret_per_trial,"UCB1 Regret")
-showPlotPulls(ucb_agent,"UCB1 Agent")
-
+showPlotRegrets(regret_per_trial,"UCB1 Sladiding Window Regret")
+showPlotPulls(ucb_agent,"UCB1 SW Agent")
 

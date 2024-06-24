@@ -40,7 +40,7 @@ class SWUCBAgent:
         else:
             n_pulls_last_w = self.W - np.isnan(self.cache).sum(axis=0)
             avg_last_w = np.nanmean(self.cache, axis=0)
-            ucbs = avg_last_w + self.range * np.sqrt(
+            ucbs= avg_last_w + self.range * np.sqrt(
                 2 * np.log(self.W) / n_pulls_last_w)  # there's a typo in the slides, log(T) -> log(W)
             self.a_t = np.argmax(ucbs)
         return self.a_t
