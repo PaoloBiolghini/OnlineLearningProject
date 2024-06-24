@@ -22,5 +22,19 @@ class NonstationaryAdvEnvironment:
         self.current_prob = np.maximum(0, np.minimum(1, self.current_prob))
         self.t += 1
         return self.current_prob
+
+class PricingAdversarialEnvironment:
+    def __init__(self, conversion_probability, cost):
+        self.conversion_probability = conversion_probability
+        self.cost = cost
+        self.t=0
+
+    def round(self, p_t, n_t):
+        "n_t: number of users, p_t: price"
+        d_t = np.random.binomial(n_t, self.conversion_probability(p_t, self.t))
+        r_t = (p_t - self.cost)*d_t
+        self.t+=1
+        "return: demand, profit"
+        return d_t, r_t 
     
     
