@@ -1,4 +1,4 @@
-#%%
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -98,4 +98,4 @@ class Main():
 if __name__ == "__main__":
     #Main.test_invironment()
     Main.test_UCB1Agent()
-# %%
+

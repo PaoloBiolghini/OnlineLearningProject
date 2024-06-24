@@ -4,7 +4,6 @@ class NonstationaryAdvEnvironment:
     def __init__(self, T, n_competitors, auctions_per_day, seed):
         np.random.seed(seed)
                     
-        
         # Auction Env
         self.auc_t = 0 
         self.n_auctions = auctions_per_day*T

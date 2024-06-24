@@ -12,6 +12,8 @@ class NonstationaryAdvEnvironment:
         
         prob_func = lambda p,t: scipy.special.expit(5*p*t/T) # design choice
         self.prob_history = np.vectorize(prob_func)(self.prices[:, np.newaxis], range(1,T+1))
+        #creates a matrix where each row corresponds to a price and each column corresponds to a time step, 
+        #storing the calculated probability for each combination.
         self.current_prob = np.zeros(n_users)
         
         
