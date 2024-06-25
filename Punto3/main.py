@@ -74,15 +74,15 @@ regret_per_trial=runComputation(ucb_agent,env,n_trials)
 #------------SW-Computation------------------
 W=500
 
-# ucb_agentsw = SWUCBAgent(K, T, W)
-# regret_per_trialsw=runComputation(ucb_agentsw,env,n_trials)
+ucb_agentsw = SWUCBAgent(K, T, W)
+regret_per_trialsw=runComputation(ucb_agentsw,env,n_trials)
 
 #----------------Final-Plots---------------------
 
-# showPlotRegrets(regret_per_trialsw,"UCB1 Sladiding Window Regret")
-# showPlotPulls(ucb_agentsw,"UCB1 SW500 Agent")
+# showPlotRegrets(regret_per_trialsw,"UCB1 Sladiding Window Regret",T,n_trials)
+# showPlotPulls(ucb_agentsw,"UCB1 SW500 Agent",K, best_price_index)
 
-# showCombinedPlots(regret_per_trial,ucb_agent,best_price_index,"UCB1",regret_per_trialsw,ucb_agentsw,best_price_index,"UCB1 SW500")
+showCombinedPlots(regret_per_trial,ucb_agent,best_price_index,"UCB1",regret_per_trialsw,ucb_agentsw,best_price_index,"UCB1 SW500",T,n_trials)
 
 #-----------------CUM-SUM-UCB---------------
 U_T = 10 # maximum number of abrupt changes
