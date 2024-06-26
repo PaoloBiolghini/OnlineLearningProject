@@ -61,7 +61,7 @@ class SWUCBAgent:
     def reset(self):
         self.__init__(*self._original_params)
 
-#UCB CumSum
+#--------------UCB CumSum----------------------
 class CUSUMUCBAgent:
     def __init__(self, K, T, M, h, alpha=0.99, range=1):
         self.K = K
@@ -79,6 +79,7 @@ class CUSUMUCBAgent:
         self.n_resets = np.zeros(K)
         self.n_t = 0
         self.t = 0
+        self.count=0
         self._original_params = (K, T, M, h, alpha, range)
 
     def pull_arm(self):
@@ -121,9 +122,74 @@ class CUSUMUCBAgent:
         for sp_, sm_ in zip(sp, sm):
             gp, gm = max([0, gp + sp_]), max([0, gm + sm_])
             if max([gp, gm]) >= self.h:
-                print("CHNAGEEE DETECTEEEEEEDDD")
+                self.count+=1
+                print(self.count, "al t:",self.t)
                 return True
         return False
+
+    def reset(self):
+        self.__init__(*self._original_params)
+
+
+
+#------------------------------TS-----------------------------------------------
+
+class TSAgent():
+    def __init__(self, K, ncostumers):
+        self.K = K
+        self.a_t = None
+        self.alpha, self.beta = np.ones(K), np.ones(K)
+        self.N_pulls = np.zeros(K)
+        self._original_params =(K,ncostumers)
+        self.n_costumers = ncostumers
+
+    def pull_arm(self):
+        theta = np.random.beta(self.alpha, self.beta)
+        self.a_t = np.argmax(theta)
+        return self.a_t
+
+    def update(self, r_t):
+        r_t=r_t/self.n_costumers
+        self.alpha[self.a_t] += r_t
+        self.beta[self.a_t] += 1 - r_t
+        self.N_pulls[self.a_t] += 1
+
+    def reset(self):
+        self.__init__(*self._original_params)
+
+#--------------------TS-SW----------------------
+class TSSWAgent():
+    def __init__(self, K,W,ncostumers):
+        self.K = K
+        self.a_t = None
+        self.alpha, self.beta = np.ones(K), np.ones(K)
+        self.N_pulls = np.zeros(K)
+        self.n_costumers = ncostumers
+        self._original_params =(K,W,ncostumers)
+        self.t=0
+        self.W=W
+        self.reward_queue = []
+        self.refArm_queue = []
+
+    def pull_arm(self):
+        theta = np.random.beta(self.alpha, self.beta)
+        self.a_t = np.argmax(theta)
+        return self.a_t
+
+    def update(self, r_t):
+        r_t=r_t/self.n_costumers
+        self.alpha[self.a_t] += r_t
+        self.beta[self.a_t] += 1 - r_t
+        self.N_pulls[self.a_t] += 1
+
+
+        self.reward_queue.append(r_t)
+        self.refArm_queue.append(self.a_t)
+        if (self.t > self.W):
+            queueReward = self.reward_queue.pop(0)
+            armtoModify = self.refArm_queue.pop(0)
+            self.alpha[armtoModify] -= queueReward
+            self.beta[armtoModify] -= (1 - queueReward)
 
     def reset(self):
         self.__init__(*self._original_params)
