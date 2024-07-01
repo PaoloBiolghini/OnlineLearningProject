@@ -9,7 +9,7 @@ class UCB1Agent:
         self.average_rewards = np.zeros(K)
         self.N_pulls = np.zeros(K)
         self.t = 0
-        self._original_params = (K, T, range)  # Store the original parameters
+        self.original_params = (K, T, range)  # Store the original parameters
 
     def pull_arm(self):
         if self.t < self.K:
@@ -25,7 +25,7 @@ class UCB1Agent:
         self.t += 1
 
     def reset(self):
-        self.__init__(*self._original_params)  # Reinitialize with the original parameters
+        self.__init__(*self.original_params)  # Reinitialize with the original parameters
 
 #UCB SW
 class SWUCBAgent:
@@ -38,7 +38,7 @@ class SWUCBAgent:
         self.cache = np.repeat(np.nan, repeats=K * W).reshape(W, K)
         self.N_pulls = np.zeros(K)
         self.t = 0
-        self._original_params = (K, T, W, range)  # Store the original parameters
+        self.original_params = (K, T, W, range)  # Store the original parameters
 
     def pull_arm(self):
         if self.t < self.K:
@@ -59,7 +59,7 @@ class SWUCBAgent:
         self.t += 1
 
     def reset(self):
-        self.__init__(*self._original_params)
+        self.__init__(*self.original_params)
 
 #------------UCB-SW-MIXED---------------------
 class SWUCBMixedAgent:
@@ -72,7 +72,7 @@ class SWUCBMixedAgent:
         self.cache = np.repeat(np.nan, repeats=K * W).reshape(W, K)
         self.N_pulls = np.zeros(K)
         self.t = 0
-        self._original_params = (K, T, W, range)  # Store the original parameters
+        self.original_params = (K, T, W, range)  # Store the original parameters
         self.lastPull=np.zeros(K)
 
     def pull_arm(self):
@@ -95,7 +95,7 @@ class SWUCBMixedAgent:
         self.t += 1
 
     def reset(self):
-        self.__init__(*self._original_params)
+        self.__init__(*self.original_params)
 
 #--------------UCB CumSum----------------------
 class CUSUMUCBAgent:
@@ -116,7 +116,7 @@ class CUSUMUCBAgent:
         self.n_t = 0
         self.t = 0
         self.count=0
-        self._original_params = (K, T, M, h, alpha, range)
+        self.original_params = (K, T, M, h, alpha, range)
 
     def pull_arm(self):
         if (self.counters > 0).any():
@@ -164,7 +164,7 @@ class CUSUMUCBAgent:
         return False
 
     def reset(self):
-        self.__init__(*self._original_params)
+        self.__init__(*self.original_params)
 
 
 
@@ -176,7 +176,7 @@ class TSAgent():
         self.a_t = None
         self.alpha, self.beta = np.ones(K), np.ones(K)
         self.N_pulls = np.zeros(K)
-        self._original_params =(K,ncostumers)
+        self.original_params =(K,ncostumers)
         self.n_costumers = ncostumers
 
     def pull_arm(self):
@@ -191,7 +191,7 @@ class TSAgent():
         self.N_pulls[self.a_t] += 1
 
     def reset(self):
-        self.__init__(*self._original_params)
+        self.__init__(*self.original_params)
 
 #--------------------TS-SW----------------------
 class TSSWAgent():
@@ -201,7 +201,7 @@ class TSSWAgent():
         self.alpha, self.beta = np.ones(K), np.ones(K)
         self.N_pulls = np.zeros(K)
         self.n_costumers = ncostumers
-        self._original_params =(K,W,ncostumers)
+        self.original_params =(K,W,ncostumers)
         self.t=0
         self.W=W
         self.reward_queue = []
@@ -228,4 +228,4 @@ class TSSWAgent():
             self.beta[armtoModify] -= (1 - queueReward)
 
     def reset(self):
-        self.__init__(*self._original_params)
+        self.__init__(*self.original_params)

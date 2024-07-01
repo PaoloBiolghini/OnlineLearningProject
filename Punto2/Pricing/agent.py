@@ -1,6 +1,6 @@
 import numpy as np
 
-#EXP3
+#---------EXP3--------------
 class EXP3Agent:
     def __init__(self, K, learning_rate):
         self.K = K
@@ -10,6 +10,7 @@ class EXP3Agent:
         self.x_t = np.ones(K)/K
         self.N_pulls = np.zeros(K)
         self.t = 0
+        self.original_params = (K, learning_rate)
 
     def pull_arm(self):
         self.x_t = self.weights/sum(self.weights)
@@ -22,8 +23,11 @@ class EXP3Agent:
         self.N_pulls[self.a_t] += 1
         self.t += 1
 
+    def reset(self):
+        self.__init__(*self.original_params)
 
-#EXP3 sliding window
+
+#--------EXP3 sliding window-------------
 class EXP3AgentSlidingWindow:
     def __init__(self, K, learning_rate, W):
         self.K = K
@@ -36,6 +40,7 @@ class EXP3AgentSlidingWindow:
         self.loss_queue=[]
         self.refArm_queue=[]
         self.W=W
+        self.original_params=(K, learning_rate, W)
 
     def pull_arm(self):
         self.x_t = self.weights / sum(self.weights)
@@ -55,9 +60,11 @@ class EXP3AgentSlidingWindow:
         self.N_pulls[self.a_t] += 1
         self.t += 1
 
+    def reset(self):
+        self.__init__(*self.original_params)
 
-#EXP3.P
 
+#-----------EXP3.P-----------
 import numpy as np
 
 class EXP3PAgent:
@@ -70,6 +77,7 @@ class EXP3PAgent:
         self.probabilities = np.ones(K) / K
         self.losses = np.zeros(K)
         self.t = 0
+        self.original_params = (K, gamma, beta, eta)
 
     def pull_arm(self):
         self.probabilities = (1 - self.gamma) * (self.weights / np.sum(self.weights)) + self.gamma / self.K
@@ -89,3 +97,6 @@ class EXP3PAgent:
         self.weights *= np.exp(self.beta * noise)
         
         self.t += 1
+
+    def reset(self):
+        self.__init__(*self.original_params)
