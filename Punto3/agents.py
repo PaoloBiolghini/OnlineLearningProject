@@ -61,6 +61,42 @@ class SWUCBAgent:
     def reset(self):
         self.__init__(*self._original_params)
 
+#------------UCB-SW-MIXED---------------------
+class SWUCBMixedAgent:
+    def __init__(self, K, T, W, range=1):
+        self.K = K
+        self.T = T
+        self.W = W
+        self.range = range
+        self.a_t = None
+        self.cache = np.repeat(np.nan, repeats=K * W).reshape(W, K)
+        self.N_pulls = np.zeros(K)
+        self.t = 0
+        self._original_params = (K, T, W, range)  # Store the original parameters
+        self.lastPull=np.zeros(K)
+
+    def pull_arm(self):
+        if self.t < self.K:
+            self.a_t = self.t
+        else:
+            n_pulls_last_w = self.W - np.isnan(self.cache).sum(axis=0) + np.ones(self.K)
+            avg_last_w = np.nanmean(self.cache, axis=0)
+            ucbs = avg_last_w+(1/(n_pulls_last_w))*(self.lastPull-avg_last_w) + self.range * np.sqrt(2 * np.log(self.W) / n_pulls_last_w )
+            self.a_t = np.argmax(ucbs)
+        return self.a_t
+
+    def update(self, r_t):
+        self.N_pulls[self.a_t] += 1
+        self.lastPull[self.a_t]=r_t
+        self.cache = np.delete(self.cache, (0), axis=0)  # remove oldest observation
+        new_samples = np.repeat(np.nan, self.K)
+        new_samples[self.a_t] = r_t
+        self.cache = np.vstack((self.cache, new_samples))  # add new observation
+        self.t += 1
+
+    def reset(self):
+        self.__init__(*self._original_params)
+
 #--------------UCB CumSum----------------------
 class CUSUMUCBAgent:
     def __init__(self, K, T, M, h, alpha=0.99, range=1):

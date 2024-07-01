@@ -2,7 +2,7 @@ import math
 
 import numpy as np
 from env import PricingSlightlyNonstationaryEnvironment as PricingEnv
-from agents import UCB1Agent,SWUCBAgent,CUSUMUCBAgent,TSAgent,TSSWAgent
+from agents import UCB1Agent,SWUCBAgent,CUSUMUCBAgent,TSAgent,TSSWAgent,SWUCBMixedAgent
 import matplotlib.pyplot as plt
 from visualization import showPlotRegrets,showCombinedPlots,showPlotPulls
 
@@ -31,7 +31,7 @@ def runComputation(agent, env, n_trials):
 
 
 #------------General-Parameters------------------
-T = 10000
+T = 100000
 K = 100
 n_customers = 100
 n_trials = 3
@@ -40,10 +40,11 @@ prices = np.linspace(0, 1, K)
 
 #-----------------env setting----------------------
 cost = 0.1
-variance: float=0.05
+variance: float=0.1
+nstep=10
 
-conversion_probability = lambda p,t: (1-p**(2+2*t/T))
-profit_curve = lambda p,t: (1-p**(2+2*t/T)) * (p - cost)
+conversion_probability = lambda p,t: (1-p**(2+2*(t//nstep)*nstep/T))
+profit_curve = lambda p,t: (1-p**(2+2*(t//nstep)*nstep/T)) * (p - cost)
 
 #------------compute clairvoyant---------------
 sum_expcted_rewards = np.zeros(K)
@@ -63,25 +64,37 @@ env = PricingEnv(conversion_probability, cost, variance)
 
 #----------------UCB-Computation------------------------------------------------------
 
-# ucb_agent = UCB1Agent(K, T)
+ucb_agent = UCB1Agent(K, T)
 
-# regret_per_trial=runComputation(ucb_agent,env,n_trials)
+regret_per_trial=runComputation(ucb_agent,env,n_trials)
 
-# showPlotRegrets(regret_per_trial,"UCB1 Regret")
-# showPlotPulls(ucb_agent,"UCB1 Agent")
+showPlotRegrets(regret_per_trial,"UCB1 Regret",T,n_trials)
+showPlotPulls(ucb_agent,"UCB1 Agent",K,best_price_index)
 
 #-----------UCB-SW-Computation-----------------------------------------------------------
-# W=500
-#
-# ucb_agentsw = SWUCBAgent(K, T, W)
-# regret_per_trialsw=runComputation(ucb_agentsw,env,n_trials)
+W=500
+
+ucb_agentsw = SWUCBAgent(K, T, W)
+regret_per_trialsw=runComputation(ucb_agentsw,env,n_trials)
 
 
 
-# showPlotRegrets(regret_per_trialsw,"UCB1 Sladiding Window Regret",T,n_trials)
-# showPlotPulls(ucb_agentsw,"UCB1 SW500 Agent",K, best_price_index)
+showPlotRegrets(regret_per_trialsw,"UCB1 Sladiding Window Regret",T,n_trials)
+showPlotPulls(ucb_agentsw,"UCB1 SW500 Agent",K, best_price_index)
 
-# showCombinedPlots(regret_per_trial,ucb_agent,best_price_index,"UCB1",regret_per_trialsw,ucb_agentsw,best_price_index,"UCB1 SW500",T,n_trials)
+showCombinedPlots(regret_per_trial,ucb_agent,best_price_index,"UCB1",regret_per_trialsw,ucb_agentsw,best_price_index,"UCB1 SW500",T,n_trials)
+
+#------------UBC-SW-MIXED---------
+
+ucb_agentswmix = SWUCBMixedAgent(K, T, W)
+regret_per_trialswmix=runComputation(ucb_agentswmix,env,n_trials)
+
+
+
+showPlotRegrets(regret_per_trialswmix,"UCB1 Sladiding Window MIXED Regret",T,n_trials)
+showPlotPulls(ucb_agentswmix,"UCB1 SW500 Agent",K, best_price_index)
+
+showCombinedPlots(regret_per_trialswmix,ucb_agentswmix,best_price_index,"UCB1 MIXED",regret_per_trialsw,ucb_agentsw,best_price_index,"UCB1 SW500",T,n_trials)
 
 
 
@@ -100,20 +113,20 @@ env = PricingEnv(conversion_probability, cost, variance)
 # showPlotPulls(ucb_cumsum,"UCB1 CUM SUM 3",K,best_price_index)
 
 #----------------------------TS-------------------------
-tsAgent=TSAgent(K,n_customers)
-regretTS=runComputation(tsAgent,env,n_trials)
-
-showPlotRegrets(regretTS,"TS REGRET",T,n_trials)
-showPlotPulls(tsAgent,"TS 3",K,best_price_index)
-
-
-#----------------------------TS--SW-----------------------
-W=1000
-tsAgentSW=TSSWAgent(K,W,n_customers)
-regretTSSW=runComputation(tsAgent,env,n_trials)
-
-showPlotRegrets(regretTSSW,"TS SW REGRET",T,n_trials)
-showPlotPulls(tsAgentSW,"TS SW",K,best_price_index)
+# tsAgent=TSAgent(K,n_customers)
+# regretTS=runComputation(tsAgent,env,n_trials)
+#
+# showPlotRegrets(regretTS,"TS REGRET",T,n_trials)
+# showPlotPulls(tsAgent,"TS 3",K,best_price_index)
+#
+#
+# #----------------------------TS--SW-----------------------
+# W=1000
+# tsAgentSW=TSSWAgent(K,W,n_customers)
+# regretTSSW=runComputation(tsAgent,env,n_trials)
+#
+# showPlotRegrets(regretTSSW,"TS SW REGRET",T,n_trials)
+# showPlotPulls(tsAgentSW,"TS SW",K,best_price_index)
 
 
 
