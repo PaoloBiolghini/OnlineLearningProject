@@ -1,3 +1,4 @@
+#%%
 import math
 
 import numpy as np
@@ -62,7 +63,7 @@ for n in range(T):
 
 env = PricingEnv(conversion_probability, cost, variance)
 
-#----------------UCB-Computation------------------------------------------------------
+#%%----------------UCB-Computation------------------------------------------------------
 
 ucb_agent = UCB1Agent(K, T)
 
@@ -79,7 +80,7 @@ regret_per_trialsw=runComputation(ucb_agentsw,env,n_trials)
 
 
 
-showPlotRegrets(regret_per_trialsw,"UCB1 Sladiding Window Regret",T,n_trials)
+showPlotRegrets(regret_per_trialsw,"UCB1 Sliding Window Regret",T,n_trials)
 showPlotPulls(ucb_agentsw,"UCB1 SW500 Agent",K, best_price_index)
 
 showCombinedPlots(regret_per_trial,ucb_agent,best_price_index,"UCB1",regret_per_trialsw,ucb_agentsw,best_price_index,"UCB1 SW500",T,n_trials)
@@ -91,7 +92,7 @@ regret_per_trialswmix=runComputation(ucb_agentswmix,env,n_trials)
 
 
 
-showPlotRegrets(regret_per_trialswmix,"UCB1 Sladiding Window MIXED Regret",T,n_trials)
+showPlotRegrets(regret_per_trialswmix,"UCB1 Sliding Window MIXED Regret",T,n_trials)
 showPlotPulls(ucb_agentswmix,"UCB1 SW500 Agent",K, best_price_index)
 
 showCombinedPlots(regret_per_trialswmix,ucb_agentswmix,best_price_index,"UCB1 MIXED",regret_per_trialsw,ucb_agentsw,best_price_index,"UCB1 SW500",T,n_trials)

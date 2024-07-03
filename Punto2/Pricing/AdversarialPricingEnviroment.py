@@ -33,7 +33,7 @@ class PricingAdversarialEnvironment:
         self.conversion_probability = conversion_probability
         self.cost = cost
         self.t=0
-        self.original_params(conversion_probability, cost)
+        self.original_params=(conversion_probability, cost)
 
     def round(self, p_t, n_t):
         "n_t: number of users, p_t: price"
