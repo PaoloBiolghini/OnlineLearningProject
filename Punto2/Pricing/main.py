@@ -16,7 +16,7 @@ def runComputation(agent, env, n_trials):
         env.reset()
         agent.reset()
 
-        agent_rewards = np.array([])
+        agent_loss = np.array([])
 
         for t in range(T):
             a_t = agent.pull_arm()
@@ -24,9 +24,9 @@ def runComputation(agent, env, n_trials):
             d_t, r_t = env.round(p_t, n_customers)
             agent.update(r_t)
 
-            agent_rewards = np.append(agent_rewards, r_t)
+            agent_loss = np.append(agent_loss, (1-r_t))
 
-        cumulative_regret = np.cumsum(expected_clairvoyant_rewards - agent_rewards)
+        cumulative_regret = np.cumsum(expected_clairvoyant_rewards - agent_loss)
         regret_per_trial.append(cumulative_regret)
 
     return regret_per_trial
