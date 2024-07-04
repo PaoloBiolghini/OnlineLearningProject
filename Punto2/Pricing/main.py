@@ -60,7 +60,7 @@ print("BEST PRICE:",best_price_index, "VALUE:",best_price)
 expected_clairvoyant_rewards=[]
 for n in range(T):
     expected_clairvoyant_rewards.append(profit_curve(best_price,n)*n_customers)
-#----------------------------
+#-----------------------------------------------
 env = PricingEnvironment(conversion_probability=conversion_probability, cost=cost)
 #env = NonstationaryAdvEnvironment(self, T, n_users, seed, n_arms)
 
@@ -88,13 +88,13 @@ beta = 0.01  # Perturbation factor
 eta = 0.1    # Learning rate
 
 exp3P_agent = EXP3PAgent(K, gamma, beta, eta)
-regret_per_trialsw=runComputation(exp3P_agent,env,n_trials)
+regret_per_trialp=runComputation(exp3P_agent,env,n_trials)
 
 showPlotRegrets(regret_per_trialsw,"EXP3.P Regret",T,n_trials)
 showPlotPulls(exp3P_agent,"EXP3.P Agent",K, best_price_index)
 
-showCombinedPlots(regret_per_trial,exp3_agent,best_price_index,"EXP3",regret_per_trialsw,exp3P_agent,best_price_index,"EXP3.P",T,n_trials)
-#showCombinedPlots(regret_per_trial,exp3_agentsw,best_price_index,f"EXP3 SW{W}",regret_per_trialsw,exp3P_agent,best_price_index,"EXP3.P",T,n_trials)
+showCombinedPlots(regret_per_trial,exp3_agent,best_price_index,"EXP3",regret_per_trialp,exp3P_agent,best_price_index,"EXP3.P",T,n_trials)
+#showCombinedPlots(regret_per_trial,exp3_agentsw,best_price_index,f"EXP3 SW{W}",regret_per_trialp,exp3P_agent,best_price_index,"EXP3.P",T,n_trials)
 
 
 
