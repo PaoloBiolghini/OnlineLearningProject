@@ -32,7 +32,7 @@ def runComputation(agent, env, n_trials):
     return regret_per_trial
     
 #------------General-Parameters------------------
-T = 1000 
+T = 10000
 K = 50
 n_trials = 5
 n_customers = 100 # I assume the number of customers arriving is the same everyday (for now, in general this is not true)
@@ -72,7 +72,7 @@ showPlotRegrets(regret_per_trial,"EXP3 Regret",T,n_trials)
 showPlotPulls(exp3_agent,"EXP3 Agent",K,best_price_index)
 
 #%%--------EXP3 sliding window-------------
-W=int(math.sqrt(T)) #optimal window size
+W=300 #optimal window size
 
 exp3_agentsw = EXP3SW( K, opt_lRate, W, n_customers)
 regret_per_trialsw=runComputation(exp3_agentsw,env,n_trials)
