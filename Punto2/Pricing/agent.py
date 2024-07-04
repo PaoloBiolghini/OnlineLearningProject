@@ -17,7 +17,8 @@ class EXP3Agent:
         self.a_t = np.random.choice(np.arange(self.K), p=self.x_t)
         return self.a_t
     
-    def update(self, l_t):
+    def update(self, reward):
+        l_t=-reward
         l_t_tilde = l_t/self.x_t[self.a_t]
         self.weights[self.a_t] *= np.exp(-self.learning_rate*l_t_tilde)
         self.N_pulls[self.a_t] += 1
@@ -29,7 +30,7 @@ class EXP3Agent:
 
 #--------EXP3 sliding window-------------
 class EXP3AgentSlidingWindow:
-    def __init__(self, K, learning_rate, W):
+    def __init__(self, K, learning_rate, W,ncostumer):
         self.K = K
         self.learning_rate = learning_rate
         self.weights = np.ones(K)
@@ -40,14 +41,16 @@ class EXP3AgentSlidingWindow:
         self.loss_queue=[]
         self.refArm_queue=[]
         self.W=W
-        self.original_params=(K, learning_rate, W)
+        self.ncostumer = ncostumer
+        self.original_params=(K, learning_rate, W, ncostumer)
 
     def pull_arm(self):
         self.x_t = self.weights / sum(self.weights)
         self.a_t = np.random.choice(np.arange(self.K), p=self.x_t)
         return self.a_t
 
-    def update(self, l_t):
+    def update(self, reward):
+        l_t=-reward/self.ncostumer
         l_t_tilde = l_t / self.x_t[self.a_t]
         self.loss_queue.append(l_t_tilde)
         self.refArm_queue.append(self.a_t)
@@ -68,7 +71,7 @@ class EXP3AgentSlidingWindow:
 import numpy as np
 
 class EXP3PAgent:
-    def __init__(self, K, gamma, beta, eta):
+    def __init__(self, K, gamma, beta, eta, ncostumer):
         self.K = K
         self.gamma = gamma
         self.beta = beta
@@ -77,7 +80,10 @@ class EXP3PAgent:
         self.probabilities = np.ones(K) / K
         self.losses = np.zeros(K)
         self.t = 0
-        self.original_params = (K, gamma, beta, eta)
+        self.original_params = (K, gamma, beta, eta,ncostumer)
+        self.N_pulls=np.zeros(K)
+        self.a_t=None
+        self.ncostumer=ncostumer
 
     def pull_arm(self):
         self.probabilities = (1 - self.gamma) * (self.weights / np.sum(self.weights)) + self.gamma / self.K
@@ -86,7 +92,7 @@ class EXP3PAgent:
 
     def update(self, reward):
         # Update the estimated loss for the chosen arm
-        estimated_loss = (1 - reward) / self.probabilities[self.a_t]
+        estimated_loss = (-1 * reward/self.ncostumer) / self.probabilities[self.a_t]
         self.losses[self.a_t] += estimated_loss
         
         # Update the weights
@@ -95,7 +101,7 @@ class EXP3PAgent:
         # Perturb the weights
         noise = np.random.normal(0, 1, self.K)
         self.weights *= np.exp(self.beta * noise)
-        
+        self.N_pulls[self.a_t] += 1
         self.t += 1
 
     def reset(self):

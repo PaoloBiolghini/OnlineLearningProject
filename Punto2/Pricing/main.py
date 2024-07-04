@@ -16,7 +16,7 @@ def runComputation(agent, env, n_trials):
         env.reset()
         agent.reset()
 
-        agent_loss = np.array([])
+        agent_rewards = np.array([])
 
         for t in range(T):
             a_t = agent.pull_arm()
@@ -24,16 +24,16 @@ def runComputation(agent, env, n_trials):
             d_t, r_t = env.round(p_t, n_customers)
             agent.update(r_t)
 
-            agent_loss = np.append(agent_loss, (1-r_t))
+            agent_rewards = np.append(agent_rewards, r_t)
 
-        cumulative_regret = np.cumsum(expected_clairvoyant_rewards - agent_loss)
+        cumulative_regret = np.cumsum(expected_clairvoyant_rewards - agent_rewards)
         regret_per_trial.append(cumulative_regret)
 
     return regret_per_trial
     
 #------------General-Parameters------------------
 T = 1000 
-K = 10
+K = 50
 n_trials = 5
 n_customers = 100 # I assume the number of customers arriving is the same everyday (for now, in general this is not true)
 prices = np.linspace(0,1,K) 
@@ -72,14 +72,14 @@ showPlotRegrets(regret_per_trial,"EXP3 Regret",T,n_trials)
 showPlotPulls(exp3_agent,"EXP3 Agent",K,best_price_index)
 
 #%%--------EXP3 sliding window-------------
-W=math.sqrt(T) #optimal window size
+W=int(math.sqrt(T)) #optimal window size
 
-exp3_agentsw = EXP3SW( K, opt_lRate, W)
+exp3_agentsw = EXP3SW( K, opt_lRate, W, n_customers)
 regret_per_trialsw=runComputation(exp3_agentsw,env,n_trials)
 
 
 showPlotRegrets(regret_per_trialsw,"EXP3 Sliding Window Regret",T,n_trials)
-showPlotPulls(exp3_agentsw,f"EXP3 SW{W} Agent",K, best_price_index)
+showPlotPulls(exp3_agentsw,f"EXP3 SW{int(W)} Agent",K, best_price_index)
 
 showCombinedPlots(regret_per_trial,exp3_agent,best_price_index,"EXP3",regret_per_trialsw,exp3_agentsw,best_price_index,f"EXP3 SW{W}",T,n_trials)
 #%%-----------EXP3.P-----------------------
@@ -87,7 +87,7 @@ gamma = 0.1  # Exploration rate
 beta = 0.01  # Perturbation factor
 eta = 0.1    # Learning rate
 
-exp3P_agent = EXP3PAgent(K, gamma, beta, eta)
+exp3P_agent = EXP3PAgent(K, gamma, beta, eta, n_customers)
 regret_per_trialp=runComputation(exp3P_agent,env,n_trials)
 
 showPlotRegrets(regret_per_trialsw,"EXP3.P Regret",T,n_trials)
