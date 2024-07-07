@@ -12,6 +12,9 @@ from Pricing.GPThompsonContinuous import GPThompsonContinuous
 from Pricing.GPUCBAgentContinuous import GPUCBAgentContinuous
 from Pricing.StochasticPricingEnvironment import StochasticPricingEnvironment
 
+# utils 
+from Punto3.visualization import showPlotRegrets, showPlotPulls, showCombinedPlots
+
 import numpy as np 
 
 def discretize(T):
@@ -239,7 +242,7 @@ if __name__ == '__main__':
             print(f'Total # of Wins: {total_wins_period}')
             print(f'Total Revenue: {total_revenue}')             
                           
-            
+           
     elif args.env == 'adversarial':
         if args.problem == 'auction':
             pass
