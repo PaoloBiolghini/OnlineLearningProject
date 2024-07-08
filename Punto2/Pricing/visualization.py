@@ -1,7 +1,9 @@
+import math
+
 import numpy as np
 import matplotlib.pyplot as plt
 
-def showPlotRegrets(regret_per_trial,title,T,n_trials):
+def showPlotRegrets(regret_per_trial,title,T,n_trials, baseline=None):
     regret_per_trial = np.array(regret_per_trial)
 
     average_regret = regret_per_trial.mean(axis=0)
@@ -14,6 +16,9 @@ def showPlotRegrets(regret_per_trial,title,T,n_trials):
                      average_regret + regret_sd / np.sqrt(n_trials),
                      alpha=0.3,
                      label='Uncertainty')
+    if(baseline != None):
+        plt.plot(baseline[0], baseline[1], label='sqrt(T)', color='blue')
+
     # plt.plot((0,T-1), (average_regret[0], average_regret[-1]), 'ro', linestyle="--")
     plt.xlabel('$t$')
     plt.legend()
@@ -31,7 +36,7 @@ def showPlotPulls(agent,title,K,best_price_index):
 
 
 def showCombinedPlots(regret_per_trial_1, agent_1, best_price_index_1, title_1,
-                      regret_per_trial_2, agent_2, best_price_index_2, title_2,T,n_trials):
+                      regret_per_trial_2, agent_2, best_price_index_2, title_2,T,n_trials,baseline=None):
     regret_per_trial_1 = np.array(regret_per_trial_1)
     regret_per_trial_2 = np.array(regret_per_trial_2)
 
@@ -46,6 +51,9 @@ def showCombinedPlots(regret_per_trial_1, agent_1, best_price_index_1, title_1,
 
     # First plot: Regret for agent_1
     axs[0, 0].plot(np.arange(T), average_regret_1, label='Average Regret')
+    if(baseline!=None):
+        axs[0, 0].plot(baseline[0], baseline[1], label='UpperBound', color='blue')
+        axs[1, 0].plot(baseline[0], baseline[1], label='UpperBound', color='blue')
     axs[0, 0].fill_between(np.arange(T),
                            average_regret_1 - regret_sd_1 / np.sqrt(n_trials),
                            average_regret_1 + regret_sd_1 / np.sqrt(n_trials),
