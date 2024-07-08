@@ -47,7 +47,7 @@ def initialize_stoch_auctions(args):
     # noise in the environment
     eta = 1/np.sqrt(args.n_users)
     if args.bidding_agent == 'ucb':
-        K_disc = discretize(args.T)
+        K_disc = discretize(args.T*args.n_users)
         print('INITIALIZING UCB BIDDING AGENT...')
         adv_agent = UCBAgent(
             valuation=args.valuation,
@@ -170,11 +170,6 @@ if __name__ == '__main__':
         print('INITIALIZING STOCHASTIC ENVIRONMEN...')
         if args.problem == 'auction':
             
-            auction, adv_agent = initialize_stoch_auctions(args)
-            total_wins_period=0
-            alg_utilities = np.array([])
-            clearvoyant_utilities = np.array([])
-            
             R_TS = [] 
             n_epochs = 1
             for n in range(n_epochs): 
@@ -199,6 +194,7 @@ if __name__ == '__main__':
                     total_wins_period+=total_wins
                     m_t = other_bids.max(axis=0)
                     m_ts = np.append(m_ts, m_t)
+                    print(f'my bids: {my_bids}')
 
                     #print(f'Total Utility: {utilities.sum()}')
                     #print(f'Mean Utility: {utilities.mean()}')
@@ -239,7 +235,7 @@ if __name__ == '__main__':
 
                      
         elif args.problem == 'pricing':
-            n_epochs= 30
+            n_epochs= 100
             R_TS = []
             for n in range(n_epochs):    
                 gp_agent, env, expected_clairvoyant_rewards = initialize_stoch_pricing(args)
