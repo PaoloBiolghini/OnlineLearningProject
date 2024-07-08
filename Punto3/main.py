@@ -32,17 +32,17 @@ def runComputation(agent, env, n_trials):
 
 
 #------------General-Parameters------------------
-T = 100000
-K = 100
-n_customers = 100
-n_trials = 3
+T = 10000   #100000
+K = 25      #100
+n_customers = 50  #100
+n_trials = 3      #3
 
 prices = np.linspace(0, 1, K)
 
 #-----------------env setting----------------------
-cost = 0.1
-variance: float=0.1
-nstep=10
+cost = 0.1  #0.1
+variance: float=0.1  #0.1
+nstep=10   #10
 
 conversion_probability = lambda p,t: (1-p**(2+2*(t//nstep)*nstep/T))
 profit_curve = lambda p,t: (1-p**(2+2*(t//nstep)*nstep/T)) * (p - cost)
@@ -73,7 +73,7 @@ showPlotRegrets(regret_per_trial,"UCB1 Regret",T,n_trials)
 showPlotPulls(ucb_agent,"UCB1 Agent",K,best_price_index)
 
 #-----------UCB-SW-Computation-----------------------------------------------------------
-W=500
+W=400  #500
 
 ucb_agentsw = SWUCBAgent(K, T, W)
 regret_per_trialsw=runComputation(ucb_agentsw,env,n_trials)
@@ -81,11 +81,11 @@ regret_per_trialsw=runComputation(ucb_agentsw,env,n_trials)
 
 
 showPlotRegrets(regret_per_trialsw,"UCB1 Sliding Window Regret",T,n_trials)
-showPlotPulls(ucb_agentsw,"UCB1 SW500 Agent",K, best_price_index)
+showPlotPulls(ucb_agentsw,f"UCB1 SW{W} Agent",K, best_price_index)
 
-showCombinedPlots(regret_per_trial,ucb_agent,best_price_index,"UCB1",regret_per_trialsw,ucb_agentsw,best_price_index,"UCB1 SW500",T,n_trials)
+showCombinedPlots(regret_per_trial,ucb_agent,best_price_index,"UCB1",regret_per_trialsw,ucb_agentsw,best_price_index,f"UCB1 SW{W}",T,n_trials)
 
-#------------UBC-SW-MIXED---------
+#%%------------UBC-SW-MIXED---------
 
 ucb_agentswmix = SWUCBMixedAgent(K, T, W)
 regret_per_trialswmix=runComputation(ucb_agentswmix,env,n_trials)
@@ -132,3 +132,5 @@ showCombinedPlots(regret_per_trialswmix,ucb_agentswmix,best_price_index,"UCB1 MI
 
 
 
+
+# %%
