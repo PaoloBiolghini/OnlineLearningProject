@@ -14,6 +14,8 @@ from Pricing.GPThompsonContinuous import GPThompsonContinuous
 from Pricing.GPUCBAgentContinuous import GPUCBAgentContinuous
 from Pricing.StochasticPricingEnvironment import StochasticPricingEnvironment
 
+import visualization
+
 import numpy as np 
 
 def get_clairvoyant_truthful(B, my_valuation, m_t, n_users):
@@ -45,7 +47,8 @@ def rescale(x, min_x, max_x):
 
 def initialize_stoch_auctions(args):
     # noise in the environment
-    eta = 1/np.sqrt(args.n_users)
+    #eta = 1/np.sqrt(args.n_users*args.T)
+    eta = 0.01
     if args.bidding_agent == 'ucb':
         K_disc = discretize(args.T*args.n_users)
         print('INITIALIZING UCB BIDDING AGENT...')
@@ -177,12 +180,12 @@ if __name__ == '__main__':
                 m_ts = np.array([])
                 total_wins_period = 0
                 auction, adv_agent = initialize_stoch_auctions(args)
+                
                 for t in range(args.T):
-                    #print(f'Day {t+1}')
-                    day_seed= np.random.randint(0, 1000)
-                    #print(f'Seed: {day_seed}')
+                    day_seed = np.random.randint(0, 1000)
                     np.random.seed(day_seed)
-                    other_bids = np.random.uniform(0, 1, size = (args.advertisers-1, args.n_users))
+                    other_bids = np.random.uniform(0, 1, size=(args.advertisers-1, args.n_users))
+                    
                     utilities, my_bids, my_payments, total_wins = loop_auction_day(
                         auction=auction, 
                         agent=adv_agent, 
@@ -190,48 +193,24 @@ if __name__ == '__main__':
                         seed=day_seed,
                         n_users=args.n_users
                     )
+                    
                     alg_utilities = np.append(alg_utilities, utilities)
-                    total_wins_period+=total_wins
+                    total_wins_period += total_wins
                     m_t = other_bids.max(axis=0)
                     m_ts = np.append(m_ts, m_t)
-                    print(f'my bids: {my_bids}')
-
-                    #print(f'Total Utility: {utilities.sum()}')
-                    #print(f'Mean Utility: {utilities.mean()}')
-                    #print(f'Mean Bid: {my_bids.mean()}')
-                    #print(f'Mean Payment: {my_payments.mean()}')
-                    #print(f'Mean # of Wins: {total_wins/args.n_users}')
-                    #print(f'Total # of Wins: {total_wins}')
-                    #print('---'*10)
+                    
                     adv_agent.update_per_round()
+                
                 print(f'Total # of Wins: {total_wins_period}')
-                print(f'Total Bids: {args.T*args.n_users}') 
+                print(f'Total Bids: {args.T * args.n_users}') 
 
-                clearvoyant_bids, clearvoyant_utilities, clairvoyant_payments = get_clairvoyant_truthful(args.B, args.valuation, m_ts, args.n_users*args.T)
+                clearvoyant_bids, clearvoyant_utilities, clairvoyant_payments = get_clairvoyant_truthful(
+                    args.B, args.valuation, m_ts, args.n_users * args.T
+                )
 
-                cumulative_regret = np.cumsum(clearvoyant_utilities-alg_utilities)
+                cumulative_regret = np.cumsum(clearvoyant_utilities - alg_utilities)
                 R_TS.append(cumulative_regret)
-
-            R_TS = np.array(R_TS)
-            #ucb_all_cumulative_regrets = np.array(ucb_all_cumulative_regrets)
-
-            R_TS_avg = R_TS.mean(axis=0)
-            R_TS_std = R_TS.std(axis=0)
-
-
-            #plt.plot(np.arange(args.T*args.n_users), R_TS_avg, label='Multi_pacing Average Regret')
-            plt.plot(np.arange(args.T*args.n_users), R_TS_avg, label='UCB Average Regret')
-            plt.fill_between(np.arange(args.T*args.n_users),
-                            R_TS_avg-R_TS_std/np.sqrt(n_epochs),
-                            R_TS_avg+R_TS_std/np.sqrt(n_epochs),
-                            alpha=0.3)
-            #plt.plot(np.arange(1, args.T+1), 25*np.arange(1, args.T+1) ** (2/3)+ 111, label="theoretical guarantee")
-            plt.legend()
-            plt.xlabel('$t$')
-            plt.ylabel('$\sum R_t$')
-            plt.title('Cumulative Regret')
-            plt.grid() 
-            plt.show(); 
+                visualization.showPlotRegrets(R_TS, "multi_pacing_stoch_env",args.T*args.n_users ,n_epochs)
 
                      
         elif args.problem == 'pricing':

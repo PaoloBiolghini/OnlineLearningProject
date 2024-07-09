@@ -48,7 +48,10 @@ class UCBAgent:
     def __sample(self, gamma):
         self.arm = np.random.choice(np.arange(self.K), p=gamma)
         self.N_pulls[self.arm] += 1
-        return self.arm
+        if self.budget >= 1:
+            return self.arm
+        else: return 0
+
     
     def bid(self):
         self.__clacoulate_bounds()
