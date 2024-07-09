@@ -32,10 +32,10 @@ def runComputation(agent, env, n_trials):
     return regret_per_trial
     
 #------------General-Parameters------------------
-T = 10000
-K = 50
+T = 300
+K = 30
 n_trials = 5
-n_customers = 100 # I assume the number of customers arriving is the same everyday (for now, in general this is not true)
+n_customers = 10 # I assume the number of customers arriving is the same everyday (for now, in general this is not true)
 prices = np.linspace(0,1,K) 
 
 #-----------------env setting----------------------
@@ -68,7 +68,10 @@ env = PricingEnvironment(conversion_probability=conversion_probability, cost=cos
 exp3_agent = EXP3Agent(K, opt_lRate)
 regret_per_trial=runComputation(exp3_agent,env,n_trials)
 
-showPlotRegrets(regret_per_trial,"EXP3 Regret",T,n_trials)
+x=np.linspace(0,T,100)
+y= np.sqrt(x)*math.sqrt(K*math.log10(K))
+
+showPlotRegrets(regret_per_trial,"EXP3 Regret",T,n_trials,[x,y])
 showPlotPulls(exp3_agent,"EXP3 Agent",K,best_price_index)
 
 #%%--------EXP3 sliding window-------------
@@ -83,9 +86,14 @@ showPlotPulls(exp3_agentsw,f"EXP3 SW{int(W)} Agent",K, best_price_index)
 
 showCombinedPlots(regret_per_trial,exp3_agent,best_price_index,"EXP3",regret_per_trialsw,exp3_agentsw,best_price_index,f"EXP3 SW{W}",T,n_trials)
 #%%-----------EXP3.P-----------------------
-gamma = 0.1  # Exploration rate
-beta = 0.01  # Perturbation factor
-eta = 0.1    # Learning rate
+delta=0.8
+gamma = 1.05*math.sqrt(K*math.log(K)/T)  # Exploration rate
+beta = math.sqrt(math.log(K*delta)/(K*T))  # Perturbation factor
+eta = 0.95*math.sqrt(math.log(K)/(K*T))    # Learning rate
+
+gamma=0.1
+beta=0.01
+eta=0.1
 
 exp3P_agent = EXP3PAgent(K, gamma, beta, eta, n_customers)
 regret_per_trialp=runComputation(exp3P_agent,env,n_trials)
@@ -93,7 +101,7 @@ regret_per_trialp=runComputation(exp3P_agent,env,n_trials)
 showPlotRegrets(regret_per_trialsw,"EXP3.P Regret",T,n_trials)
 showPlotPulls(exp3P_agent,"EXP3.P Agent",K, best_price_index)
 
-showCombinedPlots(regret_per_trial,exp3_agent,best_price_index,"EXP3",regret_per_trialp,exp3P_agent,best_price_index,"EXP3.P",T,n_trials)
+showCombinedPlots(regret_per_trial,exp3_agent,best_price_index,"EXP3",regret_per_trialp,exp3P_agent,best_price_index,"EXP3.P",T,n_trials,baseline=[x,y])
 #showCombinedPlots(regret_per_trial,exp3_agentsw,best_price_index,f"EXP3 SW{W}",regret_per_trialp,exp3P_agent,best_price_index,"EXP3.P",T,n_trials)
 
 
