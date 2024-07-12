@@ -5,8 +5,7 @@ class UCBAgent:
     def __init__(self,valuation, budget,n_users, T , K, ):
         self.valuation = valuation
         self.budget = budget
-        self.T = T
-        
+        self.T = T 
 
         self.t = 0
         self.n_users = n_users
@@ -19,6 +18,8 @@ class UCBAgent:
         self.f_t_UCB = np.zeros(self.K)
         self.c_t_LCB = np.zeros(self.K)
         self.arm=None
+        self.arm_history=[]
+        self.gamma_history=[]
     
     def __clacoulate_bounds(self):
         ft_mean = np.zeros(self.K)
@@ -44,20 +45,28 @@ class UCBAgent:
         b_eq = [1]
         res = optimize.linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq, bounds=(0,1))
         gamma = res.x
+        self.gamma_history.append(gamma)
         return gamma
     def __sample(self, gamma):
         self.arm = np.random.choice(np.arange(self.K), p=gamma)
         self.N_pulls[self.arm] += 1
-        if self.budget >= 1:
-            return self.arm
-        else: return 0
+        # if self.budget >= 1:
+        #     return self.arm
+        # else: return 0
+        return self.arm
 
     
     def bid(self):
-        self.__clacoulate_bounds()
-        gamma = self.__solve_problem()
-        arm=self.__sample(gamma)
-        return self.bids[arm]
+        if self.budget < 1:
+            self.arm_history.append(0)
+            return 0
+            
+        else:
+            self.__clacoulate_bounds()
+            gamma = self.__solve_problem()
+            arm=self.__sample(gamma)
+            self.arm_history.append(arm)
+            return self.bids[arm]
     
     def update(self, f_t, c_t):
         self.f_t[self.arm] += f_t

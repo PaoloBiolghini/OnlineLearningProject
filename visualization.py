@@ -1,14 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def showPlotRegrets(regret_per_trial,title,T,n_trials):
+def showPlotRegrets(regret_per_trial,title,T,n_trials, alpha=0.05):
     regret_per_trial = np.array(regret_per_trial)
 
     average_regret = regret_per_trial.mean(axis=0)
     regret_sd = regret_per_trial.std(axis=0)
 
     plt.plot(np.arange(T), average_regret, label='Average Regret')
-    plt.plot(np.arange(T), np.arange(T))
+    #plt.plot(np.arange(T), alpha*np.arange(T))
     plt.title(title)
     plt.fill_between(np.arange(T),
                      average_regret - regret_sd / np.sqrt(n_trials),
@@ -85,3 +85,31 @@ def showCombinedPlots(regret_per_trial_1, agent_1, best_price_index_1, title_1,
 
     plt.tight_layout()
     plt.show()
+    
+def showCombinedPlotOneAgent(regret_per_trial_1, agent_1, best_price_index_1, title_1, n_trials, T):
+    regret_per_trial_1 = np.array(regret_per_trial_1)
+
+    average_regret_1 = regret_per_trial_1.mean(axis=0)
+    regret_sd_1 = regret_per_trial_1.std(axis=0)
+
+    # Create a 2x2 grid of plots
+    fig, axs = plt.subplots(2, 1, figsize=(14, 10))
+
+    # First plot: Regret for agent_1
+    axs[0].plot(np.arange(T), average_regret_1, label='Average Regret')
+    axs[0].fill_between(np.arange(T),
+                           average_regret_1 - regret_sd_1 / np.sqrt(n_trials),
+                           average_regret_1 + regret_sd_1 / np.sqrt(n_trials),
+                           alpha=0.3,
+                           label='Uncertainty')
+    axs[0].set_title(title_1 + " Regret")
+    axs[0].set_xlabel('$t$')
+    axs[0].legend()
+
+    # Second plot: Pulls for agent_1
+    axs[1].barh(np.arange(len(agent_1.N_pulls)), agent_1.N_pulls)
+    axs[1].axhline(best_price_index_1, color='red', label='Best price')
+    axs[1].set_ylabel('Actions')
+    axs[1].set_xlabel('Number of pulls')
+    axs[1].legend()
+    axs[1].set_title("Number of pulls for each action - " + title_1)
