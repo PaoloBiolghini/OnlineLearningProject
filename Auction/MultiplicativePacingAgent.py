@@ -9,10 +9,13 @@ class MultiplicativePacingAgent:
         self.rho = self.budget/(self.T*self.n_users)
         self.lmbd = 1
         self.t = 0
+        self.bid_history = []
 
     def bid(self):
         if self.budget < 1:
+            self.bid_history.append(0)
             return 0
+        self.bid_history.append(self.valuation/(self.lmbd+1))
         return self.valuation/(self.lmbd+1)
     
     def update(self, f_t, c_t):

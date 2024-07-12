@@ -17,11 +17,14 @@ class EXP3Agent:
         self.a_t = np.random.choice(np.arange(self.K), p=self.x_t)
         return self.a_t
     
-    def update(self, reward):
-        l_t=-reward
+    def update(self, reward,ncostumers):
+        l_t=-reward/ncostumers
         l_t_tilde = l_t/self.x_t[self.a_t]
         self.weights[self.a_t] *= np.exp(-self.learning_rate*l_t_tilde)
         self.N_pulls[self.a_t] += 1
+        self.t += 1
+
+    def skip(self):
         self.t += 1
 
     def reset(self):
@@ -49,8 +52,10 @@ class EXP3AgentSlidingWindow:
         self.a_t = np.random.choice(np.arange(self.K), p=self.x_t)
         return self.a_t
 
-    def update(self, reward):
-        l_t=-reward/self.ncostumer
+    def skip(self):
+        self.t += 1
+    def update(self, reward,ncostumers):
+        l_t=-reward/ncostumers
         l_t_tilde = l_t / self.x_t[self.a_t]
         self.loss_queue.append(l_t_tilde)
         self.refArm_queue.append(self.a_t)
@@ -68,7 +73,7 @@ class EXP3AgentSlidingWindow:
 
 
 #-----------EXP3.P-----------
-import numpy as np
+
 
 class EXP3PAgent:
     def __init__(self, K, gamma, beta, eta, ncostumer):
@@ -90,9 +95,11 @@ class EXP3PAgent:
         self.a_t = np.random.choice(np.arange(self.K), p=self.probabilities)
         return self.a_t
 
-    def update(self, reward):
+    def skip(self):
+        self.t += 1
+    def update(self, reward,ncostumers):
         # Update the estimated loss for the chosen arm
-        estimated_loss = (-1 * reward/self.ncostumer) / self.probabilities[self.a_t]
+        estimated_loss = (-1 * reward/ncostumers) / self.probabilities[self.a_t]
         self.losses[self.a_t] += estimated_loss
         
         # Update the weights

@@ -7,7 +7,7 @@ class PricingSlightlyNonstationaryEnvironment:
         self.cost = cost
         self.variance = variance
         self.t = 0
-        self._original_params = (conversion_probability, cost, variance)  # Store the original parameters
+        self.original_params = (conversion_probability, cost, variance)  # Store the original parameters
 
     def round(self, p_t, n_t):
         # Calculate probability with slight variation
@@ -26,4 +26,4 @@ class PricingSlightlyNonstationaryEnvironment:
 
     def reset(self):
         # Reinitialize with the original parameters
-        self.__init__(*self._original_params)
+        self.__init__(*self.original_params)
