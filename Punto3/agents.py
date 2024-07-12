@@ -15,7 +15,7 @@ class UCB1Agent:
         if self.t < self.K:
             self.a_t = self.t
         else:
-            ucbs = self.average_rewards + self.range * np.sqrt(2 * np.log(self.T) / self.N_pulls)
+            ucbs = self.average_rewards + self.range * np.sqrt(.5 * np.log(self.T) / self.N_pulls)
             self.a_t = np.argmax(ucbs)
         return self.a_t
 
@@ -46,7 +46,7 @@ class SWUCBAgent:
         else:
             n_pulls_last_w = self.W - np.isnan(self.cache).sum(axis=0)
             avg_last_w = np.nanmean(self.cache, axis=0)
-            ucbs = avg_last_w + self.range * np.sqrt(2 * np.log(self.W) / n_pulls_last_w)
+            ucbs = avg_last_w + self.range * np.sqrt(.1 * np.log(self.W) / n_pulls_last_w)
             self.a_t = np.argmax(ucbs)
         return self.a_t
 
@@ -81,7 +81,7 @@ class SWUCBMixedAgent:
         else:
             n_pulls_last_w = self.W - np.isnan(self.cache).sum(axis=0) + np.ones(self.K)
             avg_last_w = np.nanmean(self.cache, axis=0)
-            ucbs = avg_last_w+(1/(n_pulls_last_w))*(self.lastPull-avg_last_w) + self.range * np.sqrt(0.5 * np.log(self.W) / n_pulls_last_w )
+            ucbs = avg_last_w+(1/(n_pulls_last_w))*(self.lastPull-avg_last_w) + self.range * np.sqrt(0.1 * np.log(self.W) / n_pulls_last_w )
             self.a_t = np.argmax(ucbs)
         return self.a_t
 
